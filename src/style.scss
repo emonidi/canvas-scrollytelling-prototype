@@ -1,3 +1,14 @@
+@-ms-viewport {
+	width: device-width;
+}
+
+html{
+	
+	width: 100%;
+	overflow-x: hidden !important;
+	background: #000;
+}
+
 body {
 	font-family: Avenir, Helvetica, Arial, sans-serif;
 	-webkit-font-smoothing: antialiased;
@@ -7,4 +18,17 @@ body {
 
 	margin: 0;
 	padding: 0;
+	height: auto;
+	// position: relative;
+	position: absolute;
+	overflow-x: hidden !important;
+	overflow-y: auto !important;
+	overflow-y: scroll;
+	-webkit-overflow-scrolling: touch;
 }
+
+#canvas {
+	height: 100vh;
+	overflow-x: hidden !important;
+}
+
