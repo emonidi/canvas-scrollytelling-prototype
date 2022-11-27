@@ -3,7 +3,7 @@ import Stats from 'three/examples/jsm/libs/stats.module';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { BufferGeometry, Points, PointsMaterial, MathUtils } from 'three';
-import { mergeBufferGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeBufferGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { SimplifyModifier } from 'three/examples/jsm/modifiers/SimplifyModifier';
 
 import gsap from 'gsap';
@@ -128,7 +128,7 @@ export default class Demo {
 		
 		// this.laptopMesh.geometry = this.modifier.modify(this.laptopMesh.geometry, (this.brainMesh.geometry.attributes.position.count - this.laptopMesh.geometry.attributes.position.count) * -1);
 		let geoms: any[] = [];
-		globeGftl.traverse(child=>{
+		globeGftl.traverse((child:any)=>{
 			console.log(child)
 			if(child.isMesh || child.isPoints){
 				
