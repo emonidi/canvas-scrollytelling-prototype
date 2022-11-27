@@ -3,7 +3,7 @@ import Stats from 'three/examples/jsm/libs/stats.module';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { BufferGeometry, Points, PointsMaterial, MathUtils } from 'three';
-import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeBufferGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { SimplifyModifier } from 'three/examples/jsm/modifiers/SimplifyModifier';
 
 import gsap from 'gsap';
@@ -24,6 +24,8 @@ export default class Demo {
 	private loader!: GLTFLoader;
 	private pointsMaterial!: PointsMaterial;
 	private modifier!: SimplifyModifier;
+	private globeMesh!:Points;
+	
 
 	constructor() {
 		this.loader = new GLTFLoader();
@@ -48,12 +50,13 @@ export default class Demo {
 
 				model.scene.traverse((child) => {
 
-					if (child.type === "Mesh") {
+					if (child.type === "Mesh" || child.type === "Points") {
 						geoms.push((child as any).geometry);
 					}
 				})
 
 				let geom = mergeBufferGeometries(geoms);
+			
 				let mesh = new Points(geom, this.pointsMaterial);
 				resolve(mesh);
 			});
@@ -119,9 +122,32 @@ export default class Demo {
 
 		this.renderer.render(this.scene, this.camera);
 		ScrollTrigger.refresh();
+		
+
+		let globeGftl = await (await this.loader.loadAsync("models/oceanic_currents/scene.gltf")).scenes[0];
+		
+		// this.laptopMesh.geometry = this.modifier.modify(this.laptopMesh.geometry, (this.brainMesh.geometry.attributes.position.count - this.laptopMesh.geometry.attributes.position.count) * -1);
+		let geoms: any[] = [];
+		globeGftl.traverse(child=>{
+			console.log(child)
+			if(child.isMesh || child.isPoints){
+				
+				geoms.push(child.geometry);
+			}
+		})
+		
+		let globeGeometry = mergeBufferGeometries([geoms[0]]);
+		globeGeometry.attributes.position.needsUpdate = true;
+		// globeGeometry = this.modifier.modify(globeGeometry,  (this.brainMesh.geometry.attributes.position.count - globeGeometry.attributes.position.count) * -1);
+		console.log(globeGeometry)
+		this.globeMesh = new Points(globeGeometry, this.pointsMaterial);
+		this.globeMesh.geometry.scale(2,2,2)
+		this.globeMesh.geometry.rotateX(degToRad(-90))
+		// console.log("globe")
+		// this.scene.add(this.globeMesh);
 		this.morph(this.bulbMesh, this.brainMesh);
 		this.animate();
-
+		// this.controls = new OrbitControls(this.camera,this.renderer.domElement);
 	}
 
 	morph(mesh1: Points, mesh2: Points) {
@@ -157,6 +183,21 @@ export default class Demo {
 			})
 			.to(mesh1.rotation, {
 				y: degToRad(-360),
+				onUpdate: () => {
+					mesh1.geometry.attributes.position.needsUpdate = true;
+					this.render();
+				}
+			})
+			.to(mesh1.geometry.attributes.position.array,{
+				endArray:this.globeMesh.geometry.attributes.position.array as any,
+				onUpdate: () => {
+					mesh1.geometry.attributes.position.needsUpdate = true;
+					this.render();
+				}
+			})
+			.to(mesh1.rotation,{
+				
+				y:degToRad(180),
 				onUpdate: () => {
 					mesh1.geometry.attributes.position.needsUpdate = true;
 					this.render();
