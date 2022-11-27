@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { BufferGeometry, Points, PointsMaterial, Vector3, MathUtils } from 'three';
+import { BufferGeometry, Points, PointsMaterial, MathUtils } from 'three';
 import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import {SimplifyModifier} from 'three/examples/jsm/modifiers/SimplifyModifier';
+import { SimplifyModifier } from 'three/examples/jsm/modifiers/SimplifyModifier';
 
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
@@ -16,36 +16,19 @@ export default class Demo {
 	private renderer!: THREE.WebGLRenderer;
 	private scene!: THREE.Scene;
 	private camera!: THREE.PerspectiveCamera;
-
-
 	private lightPoint!: THREE.PointLight;
-
 	private controls!: OrbitControls;
 	private stats!: any;
 	private brainMesh!: Points;
 	private bulbMesh!: Points;
 	private loader!: GLTFLoader;
 	private pointsMaterial!: PointsMaterial;
-	private points!: Vector3[];
-	
 	private modifier!: SimplifyModifier;
-	
+
 	constructor() {
 		this.loader = new GLTFLoader();
 		this.modifier = new SimplifyModifier();
 		this.pointsMaterial = new PointsMaterial({ color: "#fff", size: .012 });
-		this.points = [];
-		
-
-		for (let i = 0; i < 40000; i++) {
-			let point = new Vector3(
-				i * 0.00001,
-				0,
-				0
-			)
-			this.points.push(point);
-		}
-
 		this.initScene();
 		this.initStats();
 		this.initListeners();
@@ -62,21 +45,16 @@ export default class Demo {
 		return new Promise((resolve) => {
 			this.loader.load(url, (model: GLTF) => {
 				let geoms: BufferGeometry[] = []
-			
+
 				model.scene.traverse((child) => {
-				
+
 					if (child.type === "Mesh") {
-					
 						geoms.push((child as any).geometry);
 					}
 				})
+
 				let geom = mergeBufferGeometries(geoms);
-				
-			
-				
-			
 				let mesh = new Points(geom, this.pointsMaterial);
-				
 				resolve(mesh);
 			});
 		})
@@ -84,11 +62,10 @@ export default class Demo {
 
 	async initScene() {
 		this.scene = new THREE.Scene();
-
 		this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 100);
 		this.camera.position.z = 5;
 		this.renderer = new THREE.WebGLRenderer({
-			canvas:document.getElementById("canvas")!
+			canvas: document.getElementById("canvas")!
 		});
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.domElement.classList.add("canvas")
@@ -97,8 +74,6 @@ export default class Demo {
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 
 		document.body.appendChild(this.renderer.domElement);
-
-		// this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
 		const ambientLight = new THREE.AmbientLight(0xffffff, 4);
 		this.scene.add(ambientLight);
@@ -130,18 +105,18 @@ export default class Demo {
 
 
 		this.bulbMesh = await this.loadModel("models/light_bulb/scene.gltf");
-		this.bulbMesh.position.set(0,0,-150);
+		this.bulbMesh.position.set(0, 0, -150);
 		this.bulbMesh.geometry.scale(2, 2, 2);
-		this.bulbMesh.rotation.set(MathUtils.degToRad(-88),0,0);
+		this.bulbMesh.rotation.set(MathUtils.degToRad(-88), 0, 0);
 		this.brainMesh = await this.loadModel("models/Camera_01_1k.gltf/Camera_01_1k.gltf");
 		this.brainMesh.geometry.scale(15, 15, 15);
 		this.brainMesh.position.set(0, 0, 3);
 		this.brainMesh.geometry.attributes.position.needsUpdate = true;
-	
-		this.bulbMesh.geometry = this.modifier.modify(this.bulbMesh.geometry,(this.brainMesh.geometry.attributes.position.count -this.bulbMesh.geometry.attributes.position.count )*-1);
-	
+
+		this.bulbMesh.geometry = this.modifier.modify(this.bulbMesh.geometry, (this.brainMesh.geometry.attributes.position.count - this.bulbMesh.geometry.attributes.position.count) * -1);
+
 		this.scene.add(this.bulbMesh);
-	
+
 		this.renderer.render(this.scene, this.camera);
 		ScrollTrigger.refresh();
 		this.morph(this.bulbMesh, this.brainMesh);
@@ -151,81 +126,58 @@ export default class Demo {
 
 	morph(mesh1: Points, mesh2: Points) {
 		gsap.timeline({
-			scrollTrigger:{
+			scrollTrigger: {
 				trigger: "#canvas",
 				scrub: 1.5,
-				
 				pin: true,
 				end: "+=500%"
 			}
 		}).to(mesh1.position, {
-			// duration: 1,
-			
-			x:0,
-			y:0,
-			z:0,
+			x: 0,
+			y: 0,
+			z: 0,
 			onUpdate: () => {
-			
 				if (this.stats) this.stats.update();
-
-				// if (this.controls) this.controls.update();
-
 				this.renderer.render(this.scene, this.camera);
 			}
 		})
-		.to(mesh1.rotation,{
-			x:MathUtils.degToRad(0),
-			
-			onUpdate: () => {
-				mesh1.geometry.attributes.position.needsUpdate = true;
-				if (this.stats) this.stats.update();
+			.to(mesh1.rotation, {
+				x: MathUtils.degToRad(0),
+				onUpdate: () => {
+					mesh1.geometry.attributes.position.needsUpdate = true;
+					this.render();
+				}
+			})
+			.to(mesh1.geometry.attributes.position.array, {
+				endArray: (mesh2.geometry.attributes.position.array) as any,
+				onUpdate: () => {
+					mesh1.geometry.attributes.position.needsUpdate = true;
+					this.render();
+				}
+			})
+			.to(mesh1.rotation, {
+				y: degToRad(-360),
+				onUpdate: () => {
+					mesh1.geometry.attributes.position.needsUpdate = true;
+					this.render();
+				}
+			});
+	}
 
-				if (this.controls) this.controls.update();
-
-				this.renderer.render(this.scene, this.camera);
-			}
-		})
-		.to(mesh1.geometry.attributes.position.array,{
-			endArray:(mesh2.geometry.attributes.position.array) as any,
-			
-			// delay:1,
-			
-			onUpdate: () => {
-				mesh1.geometry.attributes.position.needsUpdate = true;
-				// console.log(mesh2.geometry.attributes.position)
-				if (this.stats) this.stats.update();
-
-				if (this.controls) this.controls.update();
-
-				this.renderer.render(this.scene, this.camera);
-			}
-		})
-		.to(mesh1.rotation,{
-			y:degToRad(-360),
-			onUpdate: () => {
-				mesh1.geometry.attributes.position.needsUpdate = true;
-				if (this.stats) this.stats.update();
-
-				if (this.controls) this.controls.update();
-
-				this.renderer.render(this.scene, this.camera);
-			}
-		});
+	render() {
+		if (this.stats) this.stats.update();
+		if (this.controls) this.controls.update();
+		this.renderer.render(this.scene, this.camera);
 	}
 
 	initListeners() {
 		window.addEventListener('resize', this.onWindowResize.bind(this), false);
-
 		window.addEventListener('keydown', (event) => {
 			const { key } = event;
-
 			switch (key) {
 				case 'e':
 					const win = window.open('', 'Canvas Image');
-
 					const { domElement } = this.renderer;
-
-					// Makse sure scene is rendered.
 					this.renderer.render(this.scene, this.camera);
 
 					const src = domElement.toDataURL();
@@ -251,17 +203,6 @@ export default class Demo {
 		requestAnimationFrame(() => {
 			this.animate();
 		});
-
-
-		// debugger
-
-		// this.cube.rotation.x += 0.01;
-		// this.cube.rotation.y += 0.01;
-
-		if (this.stats) this.stats.update();
-
-		if (this.controls) this.controls.update();
-
-		this.renderer.render(this.scene, this.camera);
+		this.render();
 	}
 }
