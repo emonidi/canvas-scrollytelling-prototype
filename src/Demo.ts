@@ -129,7 +129,7 @@ export default class Demo {
 		// this.laptopMesh.geometry = this.modifier.modify(this.laptopMesh.geometry, (this.brainMesh.geometry.attributes.position.count - this.laptopMesh.geometry.attributes.position.count) * -1);
 		let geoms: any[] = [];
 		globeGftl.traverse((child:any)=>{
-			console.log(child)
+		
 			if(child.isMesh || child.isPoints){
 				
 				geoms.push(child.geometry);
@@ -139,12 +139,13 @@ export default class Demo {
 		let globeGeometry = mergeBufferGeometries([geoms[0]]);
 		globeGeometry.attributes.position.needsUpdate = true;
 		// globeGeometry = this.modifier.modify(globeGeometry,  (this.brainMesh.geometry.attributes.position.count - globeGeometry.attributes.position.count) * -1);
-		console.log(globeGeometry)
+	
 		this.globeMesh = new Points(globeGeometry, this.pointsMaterial);
 		this.globeMesh.geometry.scale(2,2,2)
-		this.globeMesh.geometry.rotateX(degToRad(-90))
+		this.globeMesh.geometry.rotateX(degToRad(-90));
 		// console.log("globe")
 		// this.scene.add(this.globeMesh);
+		(document.querySelector(".loader") as any).style.display="none";
 		this.morph(this.bulbMesh, this.brainMesh);
 		this.animate();
 		// this.controls = new OrbitControls(this.camera,this.renderer.domElement);
