@@ -141,7 +141,7 @@ export default class Demo {
 		// globeGeometry = this.modifier.modify(globeGeometry,  (this.brainMesh.geometry.attributes.position.count - globeGeometry.attributes.position.count) * -1);
 	
 		this.globeMesh = new Points(globeGeometry, this.pointsMaterial);
-		this.globeMesh.geometry.scale(2,2,2)
+		this.globeMesh.geometry.scale(1.5,1.5,1.5)
 		this.globeMesh.geometry.rotateX(degToRad(-90));
 		// console.log("globe")
 		// this.scene.add(this.globeMesh);

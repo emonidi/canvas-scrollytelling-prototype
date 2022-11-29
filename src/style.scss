@@ -10,7 +10,7 @@
     animation: rotate 1s linear infinite;
     position: fixed;
     display: flex;
-    left: 50%;
+    left: calc(50% - 24px);
     top: 46vh;
     z-index: 10000;
   }
